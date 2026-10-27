@@ -12,3 +12,4 @@ Thumbs.db
 .idea
 *.log
 scripts/originals/
+dist-pages
