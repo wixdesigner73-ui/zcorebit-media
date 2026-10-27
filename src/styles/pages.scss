@@ -1,0 +1,26 @@
+@use './tokens' as *;
+
+.app-content {
+  position: relative;
+  min-height: 100svh;
+}
+
+.route-loading {
+  min-height: 100svh;
+  background: var(--ink);
+}
+
+.notfound {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 28px;
+  min-height: 100svh;
+  padding: var(--header-h) var(--gutter);
+}
+
+.notfound__title {
+  @include headline(clamp(44px, 8vw, 130px));
+  em { color: var(--yellow); }
+}

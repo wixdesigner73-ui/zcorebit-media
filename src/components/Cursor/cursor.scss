@@ -1,0 +1,70 @@
+@use '../../styles/tokens' as *;
+
+.cursor,
+.cursor-dot {
+  position: fixed;
+  z-index: 200;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  &.is-visible { opacity: 1; }
+  @media (hover: none), (pointer: coarse) { display: none; }
+}
+
+.cursor-dot {
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: var(--yellow);
+  mix-blend-mode: difference;
+}
+
+.cursor {
+  width: 0;
+  height: 0;
+  &::before {
+    content: '';
+    position: absolute;
+    left: -16px;
+    top: -16px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    transition: transform 0.45s $ease-out, background-color 0.3s ease, border-color 0.3s ease;
+  }
+  &.is-down::before { transform: scale(0.82); }
+
+  &[data-state='link']::before { transform: scale(1.5); border-color: rgba(253, 189, 14, 0.8); }
+  &[data-state='text']::before { transform: scale(0.4); }
+
+  &[data-state='drag'],
+  &[data-state='view'],
+  &[data-state='open'],
+  &[data-state='close'],
+  &[data-state='explore'],
+  &[data-state='enter'] {
+    &::before {
+      transform: scale(2.6);
+      border-color: transparent;
+      background: rgba(253, 189, 14, 0.92);
+    }
+    + .cursor-dot { opacity: 0; }
+  }
+}
+
+.cursor__label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+  white-space: nowrap;
+}

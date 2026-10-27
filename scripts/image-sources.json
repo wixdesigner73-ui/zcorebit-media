@@ -1,0 +1,70 @@
+{
+  "_note": "Source list for scripts/fetch-images.mjs. 'existing' = image already used on media.zcorebit.com. All sources are Unsplash (Unsplash License). Replace any entry with your own photography by dropping a file into public/assets/images/<key>-{640,1280,1920}.webp or by editing this list and re-running `npm run images`.",
+  "images": {
+    "vantex-01": { "id": "photo-1496247749665-49cf5b1022e9", "existing": true },
+    "vantex-02": { "id": "photo-1581091226825-a6a2a5aee158" },
+    "vantex-03": { "id": "photo-1504917595217-d4dc5ebe6122" },
+    "vantex-04": { "id": "photo-1565043589221-1a6fd9ae45c7" },
+    "vantex-05": { "id": "photo-1503387762-592deb58ef4e" },
+
+    "marbell-01": { "id": "photo-1655516433028-9e0e1599cf8b", "existing": true },
+    "marbell-02": { "id": "photo-1542314831-068cd1dbfeeb" },
+    "marbell-03": { "id": "photo-1571896349842-33c89424de2d" },
+    "marbell-04": { "id": "photo-1520250497591-112f2f40a3f4" },
+    "marbell-05": { "id": "photo-1506905925346-21bda4d32df4" },
+
+    "luma-01": { "id": "photo-1668952135120-7d997b1b3778", "existing": true },
+    "luma-02": { "id": "photo-1505740420928-5e560c06d30e" },
+    "luma-03": { "id": "photo-1608571423902-eed4a5ad8108" },
+    "luma-04": { "id": "photo-1617897903246-719242758050" },
+    "luma-05": { "id": "photo-1590602847861-f357a9332bbc" },
+
+    "aurelio-01": { "id": "photo-1742844552700-3926862c5311", "existing": true },
+    "aurelio-02": { "id": "photo-1582719478250-c89cae4dc85b" },
+    "aurelio-03": { "id": "photo-1551882547-ff40c63fe5fa" },
+    "aurelio-04": { "id": "photo-1414235077428-338989a2e8c0" },
+    "aurelio-05": { "id": "photo-1504674900247-0877df9cc836" },
+
+    "solvane-01": { "id": "photo-1662532577856-e8ee8b138a8b", "existing": true },
+    "solvane-02": { "id": "photo-1509631179647-0177331693ae" },
+    "solvane-03": { "id": "photo-1515886657613-9f3515b0c78f" },
+    "solvane-04": { "id": "photo-1496747611176-843222e1e57c" },
+    "solvane-05": { "id": "photo-1555529669-e69e7aa0ba9a" },
+
+    "amaan-01": { "id": "photo-1506863530036-1efeddceb993", "existing": true },
+    "amaan-02": { "id": "photo-1488521787991-ed7bbaae773c" },
+    "amaan-03": { "id": "photo-1469571486292-0ba58a3f068b" },
+    "amaan-04": { "id": "photo-1500530855697-b586d89ba3ee" },
+    "amaan-05": { "id": "photo-1507525428034-b723cf961d3e" },
+
+    "philosophy-core": { "id": "photo-1498075702571-ecb018f3752d", "existing": true },
+    "philosophy-bit": { "id": "photo-1515634928627-2a4e0dae3ddf", "existing": true },
+    "philosophy-media": { "id": "photo-1574717024653-61fd2cf4d44d", "existing": true },
+
+    "service-brand": { "id": "photo-1485846234645-a62644f84728" },
+    "service-social": { "id": "photo-1501281668745-f7f57925c3b4" },
+    "service-ugc": { "id": "photo-1611095973763-414019e72400" },
+    "service-product": { "id": "photo-1523275335684-37898b6baf30" },
+    "service-post": { "id": "photo-1598550476439-6847785fcea6" },
+    "service-photography": { "id": "photo-1502982720700-bfff97f2ecac" },
+    "service-personal": { "id": "photo-1507003211169-0a1dd7228f2d" },
+    "service-corporate": { "id": "photo-1505373877841-8d25f7d46678" },
+    "service-motion": { "id": "photo-1535016120720-40c646be5580" },
+    "service-events": { "id": "photo-1492684223066-81342ee5ff30" },
+
+    "reel-01": { "id": "photo-1478720568477-152d9b164e26" },
+    "reel-02": { "id": "photo-1489599849927-2ee91cede3ba" },
+    "reel-03": { "id": "photo-1524712245354-2c4e5e7121c0" },
+    "reel-04": { "id": "photo-1542038784456-1ea8e935640e" },
+    "reel-05": { "id": "photo-1492691527719-9d1e07e534b4" },
+    "reel-06": { "id": "photo-1566275529824-cca6d008f3da" },
+    "reel-07": { "id": "photo-1470229722913-7c0e2dbbafd3" },
+    "reel-08": { "id": "photo-1533174072545-7a4b6ad7a6c3" },
+    "reel-09": { "id": "photo-1531746020798-e6953c6e8e04" },
+    "reel-10": { "id": "photo-1559128010-7c1ad6e1b6a5" },
+    "reel-11": { "id": "photo-1486406146926-c627a92ad1ab" },
+    "reel-12": { "id": "photo-1540575467063-178a50c2df87" },
+    "reel-13": { "id": "photo-1534528741775-53994a69daeb" },
+    "reel-14": { "id": "photo-1513694203232-719a280e022f" }
+  }
+}

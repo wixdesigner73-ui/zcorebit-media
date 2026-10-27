@@ -1,0 +1,39 @@
+{
+  "name": "zcorebit-media",
+  "version": "1.0.0",
+  "description": "Zcorebit Media — immersive cinematic website (React, Vite, Three.js, GSAP)",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
+    "images": "node scripts/fetch-images.mjs"
+  },
+  "type": "module",
+  "dependencies": {
+    "@fontsource-variable/onest": "^5.3.1",
+    "@fontsource/dm-mono": "^5.3.0",
+    "@fontsource/instrument-serif": "^5.3.0",
+    "gsap": "^3.12.5",
+    "lenis": "^1.1.18",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0",
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@types/three": "^0.170.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "sass": "^1.81.0",
+    "sharp": "^0.33.5",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=18.18"
+  }
+}
