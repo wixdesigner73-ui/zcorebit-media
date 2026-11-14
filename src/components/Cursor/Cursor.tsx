@@ -47,17 +47,31 @@ export function Cursor() {
     };
     resetRef.current = () => setState('');
 
-    const onMove = (e: PointerEvent) => {
-      if (e.pointerType !== 'mouse') return;
-      x = e.clientX;
-      y = e.clientY;
-      if (!visible) { visible = true; rx = x; ry = y; ring.classList.add('is-visible'); dot.classList.add('is-visible'); }
-      const target = e.target as Element | null;
+    const evaluate = (target: Element | null) => {
       const tagged = target?.closest<HTMLElement>('[data-cursor]');
       if (tagged?.dataset.cursor) setState(tagged.dataset.cursor);
       else if (target?.closest('a, button, [role="button"], label, select')) setState('link');
       else if (target?.closest('input, textarea')) setState('text');
       else setState('');
+    };
+
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerType !== 'mouse') return;
+      x = e.clientX;
+      y = e.clientY;
+      if (!visible) { visible = true; rx = x; ry = y; ring.classList.add('is-visible'); dot.classList.add('is-visible'); }
+      evaluate(e.target as Element | null);
+    };
+
+    // The page moves under a still pointer (smooth scroll, route changes):
+    // re-check what is actually under it so labels never go stale.
+    let scrollFrame = 0;
+    const onScroll = () => {
+      if (!visible || scrollFrame) return;
+      scrollFrame = requestAnimationFrame(() => {
+        scrollFrame = 0;
+        evaluate(document.elementFromPoint(x, y));
+      });
     };
     const onLeave = () => { visible = false; ring.classList.remove('is-visible'); dot.classList.remove('is-visible'); };
     const onDown = () => ring.classList.add('is-down');
@@ -74,13 +88,16 @@ export function Cursor() {
     loop();
 
     window.addEventListener('pointermove', onMove, { passive: true });
+    window.addEventListener('scroll', onScroll, { passive: true });
     document.addEventListener('pointerleave', onLeave);
     window.addEventListener('pointerdown', onDown);
     window.addEventListener('pointerup', onUp);
     return () => {
       cancelAnimationFrame(frame);
       document.documentElement.classList.remove('has-cursor');
+      cancelAnimationFrame(scrollFrame);
       window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('scroll', onScroll);
       document.removeEventListener('pointerleave', onLeave);
       window.removeEventListener('pointerdown', onDown);
       window.removeEventListener('pointerup', onUp);

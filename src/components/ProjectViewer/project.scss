@@ -182,4 +182,6 @@
   @include glass(rgba(30, 26, 21, 0.4));
   .glass-btn { width: 40px; min-height: 40px; padding: 0; border-radius: 10px; }
   .mono { color: var(--fg-dim); }
+  // Stacks above the pinned sound button on narrow screens.
+  @include mobile { bottom: calc(var(--frame) + 72px); }
 }

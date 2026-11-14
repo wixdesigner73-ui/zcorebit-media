@@ -4,10 +4,10 @@ import { sound } from '../../audio/SoundEngine';
 import { useExperience } from '../../context/ExperienceContext';
 import { introMessages } from '../../data/content';
 import { imgUrl } from '../../data/images';
-import { HERO_VIDEO, LOGO } from '../../utils/assets';
+import { LOGO } from '../../utils/assets';
 
 // Choreography, in ms. Editable in one place.
-const TIMING = { first: 950, between: 1450, settle: 500, arrival: 760, autoContinue: 6500 };
+const TIMING = { first: 600, between: 950, settle: 300, arrival: 760, holdBeforeExit: 1700 };
 // Resting tilt of each card once it has been pushed back into the stack.
 const TILT = [-2.4, 1.8, -1.3, 2.6, -1.9, 0];
 // Horizontal launch offset — cards slide in from alternating sides.
@@ -15,19 +15,20 @@ const LAUNCH = [-46, 38, -30, 52, -40, 0];
 // How far each card is flung when the stack drops away.
 const DROP = [-13, 9, -7, 15, -10, 6];
 
-type Props = { reducedMotion: boolean; onExitStart: () => void };
+type Props = {
+  reducedMotion: boolean;
+  onArrive: (count: number) => void;
+  onExitStart: () => void;
+};
 
-export function IntroMessages({ reducedMotion, onExitStart }: Props) {
+/** The incoming-message layer. Transparent: the background belongs to <Intro>. */
+export function IntroMessages({ reducedMotion, onArrive, onExitStart }: Props) {
   const { touch } = useExperience();
   const [count, setCount] = useState(0);
   const [ready, setReady] = useState(false);
+  const [exiting, setExiting] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [cardHeight, setCardHeight] = useState(103);
-  const sectionRef = useRef<HTMLElement>(null);
-  const mediaRef = useRef<HTMLDivElement>(null);
-  const shadeRef = useRef<HTMLDivElement>(null);
-  const posterRef = useRef<HTMLImageElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
   const stackRef = useRef<HTMLDivElement>(null);
   const glassRefs = useRef<(HTMLDivElement | null)[]>([]);
   const exitingRef = useRef(false);
@@ -40,31 +41,14 @@ export function IntroMessages({ reducedMotion, onExitStart }: Props) {
     return () => window.removeEventListener('resize', measure);
   }, []);
 
-  // Scene entrance: reveal the reel from the poster once a real frame exists.
-  useEffect(() => {
-    const video = videoRef.current;
-    const poster = posterRef.current;
-    if (!video || !poster) return;
-    let revealed = false;
-    const reveal = () => {
-      if (revealed) return;
-      revealed = true;
-      gsap.to(poster, { autoAlpha: 0, duration: reducedMotion ? 0.2 : 1.4, ease: 'power2.inOut' });
-    };
-    video.addEventListener('playing', reveal, { once: true });
-    const fallback = setTimeout(reveal, 3000);
-    video.play().catch(() => {});
-    gsap.fromTo(sectionRef.current, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.6, ease: 'power2.out' });
-    return () => clearTimeout(fallback);
-  }, [reducedMotion]);
-
   // Message delivery clock.
   useEffect(() => {
+    const k = reducedMotion ? 0.5 : 1;
     const timers: number[] = [];
     introMessages.forEach((_, i) => {
-      timers.push(window.setTimeout(() => setCount(i + 1), TIMING.first + i * TIMING.between * (reducedMotion ? 0.5 : 1)));
+      timers.push(window.setTimeout(() => setCount(i + 1), TIMING.first + i * TIMING.between * k));
     });
-    const readyAt = TIMING.first + (introMessages.length - 1) * TIMING.between * (reducedMotion ? 0.5 : 1) + TIMING.settle;
+    const readyAt = TIMING.first + (introMessages.length - 1) * TIMING.between * k + TIMING.settle;
     timers.push(window.setTimeout(() => setReady(true), readyAt));
     return () => timers.forEach(clearTimeout);
   }, [reducedMotion]);
@@ -75,6 +59,7 @@ export function IntroMessages({ reducedMotion, onExitStart }: Props) {
     const index = count - 1;
     const glass = glassRefs.current[index];
     sound.ping();
+    onArrive(count);
     if (!glass || reducedMotion) return;
     glass.animate(
       [
@@ -86,34 +71,31 @@ export function IntroMessages({ reducedMotion, onExitStart }: Props) {
       ],
       { duration: TIMING.arrival },
     );
-    // Background reacts: slow push-in plus a brief exposure lift.
-    gsap.to(mediaRef.current, { scale: 1.03 + count * 0.014, duration: 1.8, ease: 'power2.out' });
-    gsap.fromTo(shadeRef.current, { opacity: 0.38 }, { opacity: 0.56, duration: 1.3, ease: 'power2.out' });
-  }, [count, reducedMotion]);
+  }, [count, reducedMotion, onArrive]);
 
   const exit = useCallback(() => {
     if (!ready || exitingRef.current) return;
     exitingRef.current = true;
     setExpanded(false);
+    setExiting(true);
     const glasses = glassRefs.current.filter(Boolean).slice().reverse() as HTMLDivElement[];
-    const distance = window.innerHeight + 260;
-    const tl = gsap.timeline();
     if (reducedMotion) {
-      tl.to(glasses, { autoAlpha: 0, duration: 0.2 })
-        .add(onExitStart)
-        .to(sectionRef.current, { autoAlpha: 0, duration: 0.3 });
+      gsap.to(glasses, { autoAlpha: 0, duration: 0.2, onComplete: onExitStart });
       return;
     }
+    const distance = window.innerHeight + 260;
+    const tl = gsap.timeline();
     glasses.forEach((glass, i) => {
       const r = DROP[i % DROP.length];
-      tl.to(glass, { x: r * 0.2, y: -22, rotation: r * -0.12, duration: 0.17, ease: 'power1.out' }, i * 0.1)
-        .to(glass, { x: r * 7, y: distance, rotation: r, duration: 0.83, ease: 'power3.in' }, i * 0.1 + 0.17);
+      tl.to(glass, { x: r * 0.2, y: -18, rotation: r * -0.12, duration: 0.16, ease: 'power1.out' }, i * 0.08)
+        .to(glass, { x: r * 7, y: distance, rotation: r, duration: 0.74, ease: 'power3.in' }, i * 0.08 + 0.16);
     });
-    tl.add(onExitStart, 0.85)
-      .to(sectionRef.current, { yPercent: 105, duration: 1.1, ease: 'power4.inOut' }, 0.85);
+    // The reveal starts while the last cards are still falling — one gesture, no gap.
+    tl.add(onExitStart, 0.5);
   }, [ready, reducedMotion, onExitStart]);
 
-  // Deliberate scroll, swipe, keys or a click continue; otherwise auto-continue.
+  // Scroll, swipe, keys or a click continue; otherwise it continues on its own
+  // (unless the visitor is hovering the stack to read it).
   useEffect(() => {
     if (!ready) return;
     let wheel = 0;
@@ -132,10 +114,10 @@ export function IntroMessages({ reducedMotion, onExitStart }: Props) {
       touchY = null;
     };
     const onKey = (e: KeyboardEvent) => {
-      if ((e.target as HTMLElement).closest('.intro__skip')) return;
+      if ((e.target as HTMLElement).closest('.intro__skip, .sound')) return;
       if (['ArrowDown', 'PageDown', 'Enter', ' '].includes(e.key)) { e.preventDefault(); exit(); }
     };
-    const auto = window.setTimeout(exit, TIMING.autoContinue);
+    const auto = expanded ? undefined : window.setTimeout(exit, TIMING.holdBeforeExit);
     window.addEventListener('wheel', onWheel, { passive: true });
     window.addEventListener('touchstart', onTouchStart, { passive: true });
     window.addEventListener('touchend', onTouchEnd, { passive: true });
@@ -147,30 +129,13 @@ export function IntroMessages({ reducedMotion, onExitStart }: Props) {
       window.removeEventListener('touchend', onTouchEnd);
       window.removeEventListener('keydown', onKey);
     };
-  }, [ready, exit]);
+  }, [ready, exit, expanded]);
 
   const gap = 12;
   const delivered = introMessages.slice(0, count);
 
   return (
-    <section ref={sectionRef} className="messages" aria-label="Incoming messages">
-      <div ref={mediaRef} className="messages__media">
-        <video
-          ref={videoRef}
-          className="messages__video"
-          src={HERO_VIDEO.src}
-          poster={HERO_VIDEO.poster}
-          muted
-          loop
-          playsInline
-          preload="auto"
-          aria-hidden="true"
-        />
-        <img ref={posterRef} className="messages__poster" src={HERO_VIDEO.poster} alt="" />
-      </div>
-      <div ref={shadeRef} className="messages__shade" />
-      <div className="grain" aria-hidden="true" />
-
+    <section className="messages" aria-label="Incoming messages">
       <div
         ref={stackRef}
         className="messages__stack"
@@ -181,8 +146,7 @@ export function IntroMessages({ reducedMotion, onExitStart }: Props) {
         aria-disabled={!ready}
         aria-label={ready ? 'Continue to Zcorebit Media' : 'Messages arriving'}
         onClick={exit}
-        onPointerEnter={(e) => { if (e.pointerType === 'mouse' && ready) setExpanded(true); }}
-        onPointerMove={(e) => { if (e.pointerType === 'mouse' && ready && !expanded) setExpanded(true); }}
+        onPointerEnter={(e) => { if (e.pointerType === 'mouse' && ready && !exiting) setExpanded(true); }}
         onFocus={(e) => { if (e.currentTarget.matches(':focus-visible')) setExpanded(true); }}
         onBlur={() => setExpanded(false)}
         onPointerLeave={() => setExpanded(false)}
@@ -227,13 +191,10 @@ export function IntroMessages({ reducedMotion, onExitStart }: Props) {
         {count > 0 ? `${introMessages[count - 1].sender}: ${introMessages[count - 1].text}` : ''}
       </p>
 
-      <div className={`messages__hint${ready ? ' is-visible' : ''}`}>
+      <div className={`messages__hint${ready && !exiting ? ' is-visible' : ''}`}>
         <span className="mono">{touch ? 'Tap or swipe up to enter' : 'Scroll, click or press ↓ to enter'}</span>
-        <button className="messages__continue" type="button" onClick={exit} aria-label="Continue" tabIndex={ready ? 0 : -1}>
-          ↓
-        </button>
       </div>
-      <p className="messages__caption mono">Intro sequence · illustrative messages</p>
+      <p className={`messages__caption mono${exiting ? ' is-hidden' : ''}`}>Intro sequence · illustrative messages</p>
     </section>
   );
 }

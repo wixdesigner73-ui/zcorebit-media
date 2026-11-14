@@ -45,6 +45,24 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     return sound.play();
   }, []);
 
+  // Browsers only allow audio after a gesture: a saved "sound on" resumes on
+  // the visitor's first click, tap or key press.
+  useEffect(() => {
+    if (readPreference() !== 'on') return;
+    const resume = (e: Event) => {
+      if ((e.target as HTMLElement | null)?.closest?.('.sound')) return; // the button handles itself
+      if (!sound.playing) void sound.play();
+      off();
+    };
+    const off = () => {
+      window.removeEventListener('pointerdown', resume);
+      window.removeEventListener('keydown', resume);
+    };
+    window.addEventListener('pointerdown', resume);
+    window.addEventListener('keydown', resume);
+    return off;
+  }, []);
+
   const disable = useCallback(() => {
     writePreference('off');
     sound.pause();

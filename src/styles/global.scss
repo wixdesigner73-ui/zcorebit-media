@@ -192,6 +192,7 @@ em {
 .section {
   position: relative;
   padding: clamp(96px, 14vw, 200px) var(--gutter);
+  @include mobile { padding-top: 72px; padding-bottom: 72px; }
 }
 
 // Glass button used across the site (enter, controls, CTA).

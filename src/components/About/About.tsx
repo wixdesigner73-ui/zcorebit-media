@@ -54,6 +54,20 @@ export function About() {
         scrollTrigger: { trigger: q('.about__film')[0], start: 'top 30%', end: 'top 0%', scrub: true },
       });
 
+      // Photographs drift against the scroll for depth.
+      gsap.fromTo(q('.about__still--a img'), { yPercent: -7 }, {
+        yPercent: 7, ease: 'none',
+        scrollTrigger: { trigger: q('.about__media')[0], start: 'top bottom', end: 'bottom top', scrub: true },
+      });
+      gsap.fromTo(q('.about__still--b'), { yPercent: 14 }, {
+        yPercent: -10, ease: 'none',
+        scrollTrigger: { trigger: q('.about__media')[0], start: 'top bottom', end: 'bottom top', scrub: true },
+      });
+      gsap.from(q('.about__still--a'), {
+        clipPath: 'inset(10% 6% 10% 6% round 14px)', duration: 1.4, ease: 'expo.out',
+        scrollTrigger: { trigger: q('.about__media')[0], start: 'top 85%' },
+      });
+
       gsap.from(q('.about__copy > *'), {
         y: 40, autoAlpha: 0, stagger: 0.1, duration: 1.1, ease: 'expo.out',
         scrollTrigger: { trigger: q('.about__copy')[0], start: 'top 80%' },
@@ -133,6 +147,16 @@ export function About() {
             );
           })}
         </h2>
+
+        <div className="about__media" aria-hidden="true">
+          <figure className="about__still about__still--a">
+            <img src={img('philosophy-bit').src} srcSet={img('philosophy-bit').srcSet} sizes="(max-width: 1024px) 92vw, 40vw" alt="" loading="lazy" />
+          </figure>
+          <figure className="about__still about__still--b">
+            <img src={img('philosophy-core').src.replace('-1280.', '-640.')} alt="" loading="lazy" />
+          </figure>
+          <p className="about__media-cap mono">Concept → set → final cut</p>
+        </div>
 
         <div className="about__copy">
           <p className="mono about__k">About Zcorebit Media</p>

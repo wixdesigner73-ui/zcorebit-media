@@ -61,6 +61,15 @@
   opacity: 0;
   transition: opacity 1.2s 1.6s ease;
   .hero.is-active & { opacity: 1; }
+  // Soft pool of shadow so the headline stays readable over the photographs.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -60% -50%;
+    z-index: -1;
+    background: radial-gradient(closest-side, rgba(8, 6, 4, 0.55), transparent);
+  }
+  @include mobile { font-size: clamp(24px, 7.2vw, 32px); }
 }
 
 .hero__line {
@@ -72,23 +81,17 @@
   justify-content: center;
   align-items: baseline;
   perspective: 500px;
+  // Always takes its space, so the headline never shifts when "in" arrives.
   em {
     display: inline-block;
-    max-width: 0;
-    margin-right: 0;
+    margin-right: 0.18em;
     opacity: 0;
     font-size: 1.14em;
-    transform: translateY(16px) rotateX(-100deg);
+    transform: translateY(14px) rotateX(-90deg);
     transform-origin: 50% 100%;
-    transition:
-      max-width 0.65s $ease-out,
-      margin 0.65s $ease-out,
-      opacity 0.65s ease,
-      transform 0.85s $ease-out;
+    transition: opacity 0.7s ease, transform 0.9s $ease-out, color 0.6s ease;
   }
   .hero.is-formed & em {
-    max-width: 2em;
-    margin-right: 0.18em;
     opacity: 1;
     transform: none;
     color: var(--yellow);
@@ -126,22 +129,23 @@
 .hero__hint {
   position: absolute;
   z-index: 3;
-  bottom: 30px;
+  // Above the pinned sound button.
+  bottom: 92px;
   left: 50%;
   transform: translateX(-50%);
   font-size: 9.5px;
-  color: rgba(255, 255, 255, 0.42);
+  color: rgba(255, 255, 255, 0.5);
   white-space: nowrap;
   opacity: 0;
   transition: opacity 0.8s ease;
   .hero.is-formed & { opacity: 1; }
-  @include mobile { bottom: 26px; left: var(--gutter); transform: none; }
+  @include mobile { bottom: 84px; }
 }
 
 .hero__down {
   position: absolute;
   z-index: 3;
-  right: calc(var(--gutter) + 210px);
+  right: var(--gutter);
   bottom: calc(var(--frame) + 16px);
   width: 40px;
   height: 40px;
@@ -151,5 +155,5 @@
   opacity: 0;
   transition: opacity 0.8s 2.4s ease;
   .hero.is-active & { opacity: 1; }
-  @include mobile { right: 72px; bottom: 16px; }
+  @include mobile { right: 16px; bottom: 16px; }
 }

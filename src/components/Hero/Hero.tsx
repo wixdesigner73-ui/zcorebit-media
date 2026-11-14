@@ -184,7 +184,7 @@ export function Hero() {
       : ScrollTrigger.create({
           trigger: section,
           start: 'top top',
-          end: '+=70%',
+          end: touch ? '+=38%' : '+=70%',
           pin: true,
           pinSpacing: true,
           scrub: true,
@@ -196,7 +196,7 @@ export function Hero() {
           autoAlpha: 0,
           y: -40,
           ease: 'none',
-          scrollTrigger: { trigger: section, start: 'top top', end: '+=55%', scrub: true },
+          scrollTrigger: { trigger: section, start: 'top top', end: touch ? '+=28%' : '+=55%', scrub: true },
         });
 
     return () => {

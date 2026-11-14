@@ -79,13 +79,13 @@
   gap: 8px;
   flex-wrap: wrap;
   justify-content: flex-end;
-  .gallery--fullscreen & { bottom: 76px; }
+  .gallery--fullscreen & { bottom: 84px; }
   @include mobile {
     left: 16px;
     right: 16px;
-    bottom: 16px;
+    bottom: 74px;
     justify-content: flex-start;
-    .gallery--fullscreen & { bottom: 70px; }
+    .gallery--fullscreen & { bottom: 78px; }
   }
 }
 

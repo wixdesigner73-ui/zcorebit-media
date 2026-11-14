@@ -1,8 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { sound } from '../../audio/SoundEngine';
-import { useExperience } from '../../context/ExperienceContext';
 import { useSound } from '../../context/SoundContext';
-import { inertProps } from '../../utils/dom';
 import './sound-control.scss';
 
 const BARS = 5;
@@ -14,7 +12,6 @@ const BINS = [1, 2, 4, 7, 12];
  */
 export function SoundControl() {
   const { playing, toggle } = useSound();
-  const { introActive } = useExperience();
   const barsRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
@@ -52,7 +49,7 @@ export function SoundControl() {
   }, [toggle]);
 
   return (
-    <div className={`sound${introActive ? ' is-hidden' : ''}`} {...inertProps(introActive)}>
+    <div className="sound" role="group" aria-label="Sound">
       <span className="sound__label mono" aria-hidden="true">{playing ? 'Sound on' : 'Sound off'}</span>
       <button
         type="button"

@@ -1,75 +1,48 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { useExperience } from '../../context/ExperienceContext';
-import { useSound } from '../../context/SoundContext';
 import { getLenis } from '../../context/ScrollContext';
 import { introMessages, studio } from '../../data/content';
 import { imgUrl } from '../../data/images';
 import { HERO_IMAGES, REVEAL_IMAGES } from '../../data/scenes';
 import { HERO_VIDEO, LOGO, preloadImage } from '../../utils/assets';
+import { prefersReducedData } from '../../utils/dom';
 import { IntroMessages } from './IntroMessages';
 import { BrandReveal } from './BrandReveal';
 import './intro.scss';
 
-type Phase = 'loading' | 'choose' | 'messages' | 'reveal' | 'leaving';
+type Phase = 'loading' | 'messages' | 'reveal' | 'leaving';
 
-const MIN_LOADER_MS = 1700;
+const MIN_LOADER_MS = 1500;
 
 /** Essential assets for the opening — everything else loads lazily later. */
 function essentialAssets() {
   const keys = new Set<string>([
     ...introMessages.map((m) => m.image).filter((k) => k !== 'logo'),
     ...REVEAL_IMAGES,
-    ...HERO_IMAGES.slice(0, 12),
+    ...HERO_IMAGES.slice(0, 10),
   ]);
   return [HERO_VIDEO.poster, LOGO.white, LOGO.icon, ...[...keys].map((k) => imgUrl(k, 640))];
 }
 
+/**
+ * One continuous scene: the showreel background lives here for the whole
+ * opening and the loader, messages and brand reveal are layers on top of it,
+ * so nothing ever cuts to black between phases.
+ */
 export function Intro() {
   const { revealScenes, finishIntro, reducedMotion } = useExperience();
-  const { enable, preference } = useSound();
   const [phase, setPhase] = useState<Phase>('loading');
+  const [loaderGone, setLoaderGone] = useState(false);
   const [progress, setProgress] = useState(0);
   const rootRef = useRef<HTMLDivElement>(null);
-  const entryRef = useRef<HTMLElement>(null);
-  const enterRef = useRef<HTMLButtonElement>(null);
-  const spotRef = useRef<HTMLDivElement>(null);
+  const mediaRef = useRef<HTMLDivElement>(null);
+  const shadeRef = useRef<HTMLDivElement>(null);
+  const posterRef = useRef<HTMLImageElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const loaderRef = useRef<HTMLElement>(null);
   const leavingRef = useRef(false);
-
-  // Real progress: images + fonts + first video frame (video capped so a slow
-  // connection never blocks entry).
-  useEffect(() => {
-    let cancelled = false;
-    const assets = essentialAssets();
-    let done = 0;
-    const total = assets.length + 2;
-    const tick = () => { if (!cancelled) setProgress(++done / total); };
-
-    const video = document.createElement('video');
-    video.muted = true;
-    video.preload = 'auto';
-    video.src = HERO_VIDEO.src;
-    const videoReady = Promise.race([
-      new Promise<void>((r) => video.addEventListener('loadeddata', () => r(), { once: true })),
-      new Promise<void>((r) => video.addEventListener('error', () => r(), { once: true })),
-      new Promise<void>((r) => setTimeout(r, 4500)),
-    ]).then(tick);
-
-    const started = performance.now();
-    Promise.all([
-      ...assets.map((src) => preloadImage(src).then(tick)),
-      document.fonts.ready.then(tick),
-      videoReady,
-    ]).then(() => {
-      const wait = Math.max(0, MIN_LOADER_MS - (performance.now() - started));
-      setTimeout(() => { if (!cancelled) setPhase('choose'); }, reducedMotion ? 0 : wait + 450);
-    });
-    return () => { cancelled = true; video.removeAttribute('src'); video.load(); };
-  }, [reducedMotion]);
-
-  useEffect(() => {
-    if (phase === 'choose') enterRef.current?.focus({ preventScroll: true });
-  }, [phase]);
+  const saveData = useRef(prefersReducedData()).current;
 
   // Make sure the page underneath starts from the top.
   useEffect(() => {
@@ -77,16 +50,59 @@ export function Intro() {
     window.scrollTo(0, 0);
   }, []);
 
-  // Soft spotlight that follows the pointer over the entry photograph.
+  // Slow settle on the background while loading.
   useEffect(() => {
-    const spot = spotRef.current;
-    if (!spot || reducedMotion) return;
-    const x = gsap.quickTo(spot, '--x', { duration: 0.9, ease: 'power3' });
-    const y = gsap.quickTo(spot, '--y', { duration: 0.9, ease: 'power3' });
-    const move = (e: PointerEvent) => { x(e.clientX); y(e.clientY); };
-    window.addEventListener('pointermove', move);
-    return () => window.removeEventListener('pointermove', move);
+    if (reducedMotion) return;
+    const tween = gsap.fromTo(mediaRef.current, { scale: 1.14 }, { scale: 1.03, duration: 7, ease: 'power2.out' });
+    return () => { tween.kill(); };
   }, [reducedMotion]);
+
+  // Real progress: images + fonts + first video frame (video capped so a slow
+  // connection never blocks entry).
+  useEffect(() => {
+    let cancelled = false;
+    const assets = essentialAssets();
+    const video = videoRef.current;
+    let done = 0;
+    const total = assets.length + 2;
+    const tick = () => { if (!cancelled) setProgress(++done / total); };
+
+    const posterReveal = () => gsap.to(posterRef.current, { autoAlpha: 0, duration: reducedMotion ? 0.2 : 1.2, ease: 'power2.inOut' });
+    let revealed = false;
+    const reveal = () => { if (!revealed) { revealed = true; posterReveal(); } };
+    video?.addEventListener('playing', reveal, { once: true });
+    video?.play().catch(() => {});
+
+    const videoReady = saveData || !video
+      ? Promise.resolve().then(tick)
+      : Promise.race([
+          new Promise<void>((r) => video.addEventListener('loadeddata', () => r(), { once: true })),
+          new Promise<void>((r) => video.addEventListener('error', () => r(), { once: true })),
+          new Promise<void>((r) => setTimeout(r, 4000)),
+        ]).then(tick);
+
+    const started = performance.now();
+    Promise.all([
+      ...assets.map((src) => preloadImage(src).then(tick)),
+      document.fonts.ready.then(tick),
+      videoReady,
+    ]).then(() => {
+      const wait = reducedMotion ? 0 : Math.max(0, MIN_LOADER_MS - (performance.now() - started));
+      setTimeout(() => {
+        if (cancelled) return;
+        // Cross-fade: the loader dissolves while the first message is already on its way.
+        setPhase('messages');
+        gsap.to(loaderRef.current, {
+          autoAlpha: 0,
+          scale: 1.04,
+          duration: reducedMotion ? 0.2 : 0.9,
+          ease: 'power2.inOut',
+          onComplete: () => setLoaderGone(true),
+        });
+      }, wait + 250);
+    });
+    return () => { cancelled = true; };
+  }, [reducedMotion, saveData]);
 
   const leave = useCallback(
     (fast = false) => {
@@ -96,7 +112,7 @@ export function Intro() {
       revealScenes();
       gsap.to(rootRef.current, {
         autoAlpha: 0,
-        duration: reducedMotion ? 0.2 : fast ? 0.6 : 1.1,
+        duration: reducedMotion ? 0.2 : fast ? 0.6 : 1.2,
         ease: 'power2.inOut',
         onComplete: finishIntro,
       });
@@ -104,81 +120,58 @@ export function Intro() {
     [finishIntro, revealScenes, reducedMotion],
   );
 
-  const enter = (withSound: boolean) => {
-    if (withSound) void enable();
-    else if (preference !== 'off') { try { localStorage.setItem('zc-sound', 'off'); } catch { /* ignore */ } }
-    // Entry photograph slides away to the message scene.
-    gsap.to(entryRef.current, {
-      yPercent: -6,
-      autoAlpha: 0,
-      duration: reducedMotion ? 0.2 : 0.9,
-      ease: 'power3.inOut',
-      onComplete: () => setPhase('messages'),
-    });
-  };
+  const onArrive = useCallback((count: number) => {
+    if (reducedMotion) return;
+    gsap.to(mediaRef.current, { scale: 1.03 + count * 0.012, duration: 1.8, ease: 'power2.out', overwrite: 'auto' });
+  }, [reducedMotion]);
 
-  const skip = () => {
-    // A click is a valid gesture, so a remembered "sound on" can start here.
-    if (preference === 'on' && (phase === 'loading' || phase === 'choose')) void enable();
-    leave(true);
-  };
+  const onExitStart = useCallback(() => {
+    setPhase('reveal');
+    gsap.to(shadeRef.current, { opacity: 0.88, duration: reducedMotion ? 0.2 : 1.2, ease: 'power2.inOut' });
+  }, [reducedMotion]);
 
   return (
     <div ref={rootRef} className="intro" role="dialog" aria-modal="true" aria-label="Welcome to Zcorebit Media">
-      {(phase === 'reveal' || phase === 'leaving') && <BrandReveal onComplete={() => leave()} reducedMotion={reducedMotion} />}
+      <div ref={mediaRef} className="intro__media" aria-hidden="true">
+        {!saveData && (
+          <video ref={videoRef} className="intro__video" src={HERO_VIDEO.src} poster={HERO_VIDEO.poster} muted loop playsInline preload="auto" />
+        )}
+        <img ref={posterRef} className="intro__poster" src={HERO_VIDEO.poster} alt="" />
+      </div>
+      <div ref={shadeRef} className="intro__shade" aria-hidden="true" />
+      <div className="grain" aria-hidden="true" />
 
-      {(phase === 'messages' || phase === 'reveal') && (
-        <IntroMessages
-          reducedMotion={reducedMotion}
-          onExitStart={() => setPhase('reveal')}
-        />
+      {phase !== 'leaving' && (phase === 'messages' || phase === 'reveal') && (
+        <IntroMessages reducedMotion={reducedMotion} onArrive={onArrive} onExitStart={onExitStart} />
       )}
 
-      {(phase === 'loading' || phase === 'choose') && (
-        <section ref={entryRef} className={`entry entry--${phase}`} aria-label="Loading Zcorebit Media">
-          <img className="entry__image" src={HERO_VIDEO.poster} alt="" {...{ fetchpriority: 'high' }} />
-          <div className="entry__shade" />
-          <div ref={spotRef} className="entry__spot" />
-          <div className="grain" aria-hidden="true" />
+      {(phase === 'reveal' || phase === 'leaving') && <BrandReveal onComplete={() => leave()} reducedMotion={reducedMotion} />}
 
-          <p className="entry__intro">
+      {!loaderGone && (
+        <section ref={loaderRef} className="loader" aria-label="Loading Zcorebit Media">
+          <p className="loader__intro">
             {studio.positioning}.
             <br />
             From idea to cinematic delivery.
           </p>
-          <p className="entry__since mono">
+          <div className="loader__center">
+            <div className="loader__logo" role="img" aria-label="Zcorebit Media" style={{ ['--p' as string]: `${Math.round(progress * 100)}%` }}>
+              <img className="loader__logo-base" src={LOGO.white} alt="" />
+              <img className="loader__logo-fill" src={LOGO.white} alt="" />
+            </div>
+            <p className="loader__status mono" role="status">
+              Getting things ready <span>{String(Math.round(progress * 100)).padStart(2, '0')}%</span>
+            </p>
+          </div>
+          <p className="loader__since mono">
             <img src={LOGO.icon} alt="" width={16} height={14} />
             {studio.location}
           </p>
-
-          <div className="entry__center">
-            <div className="entry__logo" role="img" aria-label="Zcorebit Media" style={{ ['--p' as string]: `${Math.round(progress * 100)}%` }}>
-              <img className="entry__logo-base" src={LOGO.white} alt="" />
-              <img className="entry__logo-fill" src={LOGO.white} alt="" />
-            </div>
-
-            {phase === 'loading' ? (
-              <p className="entry__status mono" role="status">
-                Getting things ready <span>{String(Math.round(progress * 100)).padStart(2, '0')}%</span>
-              </p>
-            ) : (
-              <div className="entry__actions">
-                <button ref={enterRef} className="entry__enter" type="button" onClick={() => enter(true)} data-cursor="enter">
-                  <span>Enter with sound</span>
-                  <span className="entry__note mono">sound on</span>
-                  <span className="entry__eq" aria-hidden="true"><i /><i /><i /><i /></span>
-                </button>
-                <button className="entry__silent" type="button" onClick={() => enter(false)}>
-                  Enter without sound
-                </button>
-              </div>
-            )}
-          </div>
         </section>
       )}
 
       {phase !== 'leaving' && (
-        <button className="intro__skip mono" type="button" onClick={skip}>
+        <button className="intro__skip mono" type="button" onClick={() => leave(true)}>
           Skip intro <span aria-hidden="true">→</span>
         </button>
       )}
