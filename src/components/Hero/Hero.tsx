@@ -188,6 +188,9 @@ export function Hero() {
           pin: true,
           pinSpacing: true,
           scrub: true,
+          // Measured first on every refresh, so the spacing it adds is already
+          // there when the sections below work out where they start.
+          refreshPriority: 10,
           onUpdate: (self) => { exit = self.progress; },
         });
     const titleTween = reducedMotion
@@ -199,12 +202,19 @@ export function Hero() {
           scrollTrigger: { trigger: section, start: 'top top', end: touch ? '+=28%' : '+=55%', scrub: true },
         });
 
+    // This pin adds scroll length above everything else on the page and is
+    // created late (after the intro), so every later section must re-measure.
+    ScrollTrigger.refresh();
+    const settle = requestAnimationFrame(() => ScrollTrigger.refresh());
+
     return () => {
+      cancelAnimationFrame(settle);
       cancelAnimationFrame(frame);
       io.disconnect();
       st?.kill();
       titleTween?.scrollTrigger?.kill();
       titleTween?.kill();
+      requestAnimationFrame(() => ScrollTrigger.refresh());
       window.removeEventListener('resize', onResize);
       section.removeEventListener('pointermove', onPointerMove);
       section.removeEventListener('pointerdown', onPointerDown);

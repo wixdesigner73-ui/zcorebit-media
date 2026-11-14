@@ -16,7 +16,7 @@ import { setActiveSection } from '../hooks/useActiveSection';
 import { useDocumentMeta } from '../hooks/useDocumentMeta';
 
 export default function Home() {
-  const { introDone } = useExperience();
+  const { introDone, introActive } = useExperience();
 
   useDocumentMeta({
     title: 'Zcorebit Media | Premium Creative Production House in Pakistan',
@@ -47,6 +47,15 @@ export default function Home() {
     const t = setTimeout(refresh, 1500);
     return () => { window.removeEventListener('load', refresh); clearTimeout(t); };
   }, []);
+
+  // The intro locks scrolling and ends after the sections above were measured —
+  // re-measure everything once it is fully gone (and again once late images settle).
+  useEffect(() => {
+    if (introActive) return;
+    const a = setTimeout(() => ScrollTrigger.refresh(), 120);
+    const b = setTimeout(() => ScrollTrigger.refresh(), 1400);
+    return () => { clearTimeout(a); clearTimeout(b); };
+  }, [introActive]);
 
   // Arriving from another page with a section in mind (menu, "Let's talk").
   useEffect(() => {
