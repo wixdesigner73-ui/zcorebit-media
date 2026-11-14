@@ -3,7 +3,7 @@
 .contact {
   position: relative;
   overflow: hidden;
-  padding: clamp(110px, 14vw, 200px) var(--gutter) 0;
+  padding: clamp(56px, 6vw, 96px) var(--gutter) 0;
   background: radial-gradient(120% 80% at 50% 0%, #1d1711 0%, var(--ink) 60%);
 }
 
@@ -201,7 +201,7 @@
 
 .footer {
   position: relative;
-  margin-top: clamp(100px, 12vw, 180px);
+  margin-top: clamp(72px, 8vw, 120px);
 }
 
 .footer__row {

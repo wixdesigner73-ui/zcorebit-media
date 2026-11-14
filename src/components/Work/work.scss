@@ -4,6 +4,11 @@
   background: var(--ink-2);
 }
 
+// The services section above already ends with its own padding.
+.work .work__head {
+  padding-top: clamp(40px, 4vw, 72px);
+}
+
 .work__head {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -53,7 +58,7 @@
   @include tablet-down {
     flex-direction: column;
     gap: 72px;
-    padding-bottom: clamp(80px, 12vw, 140px);
+    padding-bottom: clamp(56px, 8vw, 100px);
   }
 }
 

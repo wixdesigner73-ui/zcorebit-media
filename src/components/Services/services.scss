@@ -2,6 +2,7 @@
 
 .services {
   background: linear-gradient(180deg, var(--ink) 0%, var(--ink-2) 100%);
+  padding-bottom: clamp(40px, 4vw, 72px);
 }
 
 .services__head {
