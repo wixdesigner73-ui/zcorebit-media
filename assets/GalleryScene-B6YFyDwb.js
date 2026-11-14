@@ -1,4 +1,4 @@
-var W=Object.defineProperty;var k=(u,t,e)=>t in u?W(u,t,{enumerable:!0,configurable:!0,writable:!0,value:e}):u[t]=e;var i=(u,t,e)=>k(u,typeof t!="symbol"?t+"":t,e);import{S as H,P as R,T as q,V as f,W as A,L as Y,a as z,b as X,M as V,N as U,c as O,d as F}from"./three-DI-B21LC.js";import{d as g,w as C}from"./index-6TVro7Z9.js";import"./react-7-QKyIDo.js";import"./motion-BsL225ry.js";const j=`
+var W=Object.defineProperty;var k=(u,t,e)=>t in u?W(u,t,{enumerable:!0,configurable:!0,writable:!0,value:e}):u[t]=e;var i=(u,t,e)=>k(u,typeof t!="symbol"?t+"":t,e);import{S as H,P as R,T as q,V as f,W as A,L as Y,a as z,b as X,M as V,N as U,c as O,d as F}from"./three-DI-B21LC.js";import{d as g,w as C}from"./index-CpLYU1fu.js";import"./react-7-QKyIDo.js";import"./motion-BsL225ry.js";const j=`
   uniform vec2 uViewport;
   uniform float uCurve;
   uniform vec2 uCursor;
